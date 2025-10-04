@@ -1,19 +1,24 @@
 #!/bin/bash
-# Caelestia Shell Installer for Arch Linux
-# Run as a normal user (not root)
+# Root-friendly Caelestia Shell installer for Arch Linux
+# Run as root
 
+# ==== CONFIG ====
+USERNAME="karan"   # <-- replace this with your normal username
+
+# ==== STEP 1: Update system ====
 echo "Updating system..."
-sudo pacman -Syu --noconfirm
+pacman -Syu --noconfirm
 
+# ==== STEP 2: Install dependencies ====
 echo "Installing essential build tools and dependencies..."
-sudo pacman -S --needed base-devel git cmake ninja \
+pacman -S --needed base-devel git cmake ninja \
 qt6-base qt6-declarative qt6-multimedia qt6-svg qt6-quickcontrols2 qt6-wayland \
 wayland-protocols hyprland --noconfirm
 
-# Install yay (AUR helper) if not present
+# ==== STEP 3: Install yay (AUR helper) ====
 if ! command -v yay &> /dev/null
 then
-    echo "Installing yay (AUR helper)..."
+    echo "Installing yay..."
     cd /tmp
     git clone https://aur.archlinux.org/yay.git
     cd yay
@@ -22,23 +27,25 @@ else
     echo "yay already installed."
 fi
 
-# Install Caelestia Shell from AUR
+# ==== STEP 4: Install Caelestia Shell ====
 echo "Installing Caelestia Shell..."
 yay -S --noconfirm caelestia-shell-git
 
-# Create configuration directory
-echo "Setting up Caelestia Shell configs..."
-mkdir -p ~/.config/caelestia
-
-# Optional: download example configs
-echo "Downloading example configs..."
+# ==== STEP 5: Setup config for normal user ====
+echo "Setting up Caelestia Shell configs for user $USERNAME..."
+mkdir -p /home/$USERNAME/.config/caelestia
 git clone https://github.com/caelestia-dots/shell.git /tmp/caelestia-shell-temp
-cp -r /tmp/caelestia-shell-temp/config/* ~/.config/caelestia/
+cp -r /tmp/caelestia-shell-temp/config/* /home/$USERNAME/.config/caelestia/
+chown -R $USERNAME:$USERNAME /home/$USERNAME/.config/caelestia
 rm -rf /tmp/caelestia-shell-temp
 
-# Suggest autostart entry for Hyprland
-echo "To autostart Caelestia Shell with Hyprland, add the following to ~/.config/hypr/hyprland.conf:"
-echo "  exec-once = caelestia shell"
-
-echo "Installation complete! You can now run Caelestia Shell with:"
+# ==== STEP 6: Autostart instructions ====
+echo ""
+echo "Installation complete!"
+echo "Switch to your normal user to run Caelestia Shell:"
+echo "  su - $USERNAME"
+echo "Then start the shell with:"
 echo "  caelestia shell"
+echo ""
+echo "To autostart with Hyprland, add the following line to ~/.config/hypr/hyprland.conf:"
+echo "  exec-once = caelestia shell"
